@@ -1,9 +1,7 @@
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    serverComponentsExternalPackages: ['@upstash/ratelimit', '@upstash/redis'],
-  },
+  serverExternalPackages: ['@upstash/ratelimit', '@upstash/redis'],
   images: {
     domains: ['w.wallhaven.cc', 'th.wallhaven.cc'],
     formats: ['image/webp', 'image/avif'],
@@ -47,4 +45,4 @@ const nextConfig = {
   },
 };
 
-export default nextConfig; 
+export default nextConfig;

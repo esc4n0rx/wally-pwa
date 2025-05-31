@@ -9,8 +9,20 @@ const WALLHAVEN_API_KEY = process.env.WALLHAVEN_API_KEY;
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const params = Object.fromEntries(searchParams);
-    const validatedParams = searchParamsSchema.parse(params);
+    
+    const rawParams = Object.fromEntries(searchParams);
+    
+    const processedParams: any = { ...rawParams };
+    
+    if (rawParams.page) {
+      const pageNum = parseInt(rawParams.page, 10);
+      if (!isNaN(pageNum)) {
+        processedParams.page = pageNum;
+      }
+    }
+    
+    const validatedParams = searchParamsSchema.parse(processedParams);
+    
     const cacheKey = `search:${JSON.stringify(validatedParams)}`;
     
     const cached = apiCache.get(cacheKey);
@@ -122,10 +134,10 @@ function getOrigin(request: NextRequest): string {
     process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null,
     'http://localhost:3000',
     'http://127.0.0.1:3000',
-  ].filter(Boolean);
+  ].filter(Boolean) as string[];
 
   const origin = request.headers.get('origin');
-  return allowedOrigins.includes(origin) && origin ? origin : (allowedOrigins[0] || '');
+  return allowedOrigins.includes(origin || '') ? origin! : allowedOrigins[0];
 }
 
 export async function OPTIONS(request: NextRequest) {

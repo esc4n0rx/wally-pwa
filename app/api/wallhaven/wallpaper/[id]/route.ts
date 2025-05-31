@@ -1,25 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const WALLHAVEN_BASE_URL = process.env.NEXT_PUBLIC_WALLHAVEN_API_URL || 'https://wallhaven.cc/api/v1';
-const WALLHAVEN_API_KEY = process.env.WALLHAVEN_API_KEY;;
+const WALLHAVEN_BASE_URL = process.env.WALLHAVEN_API_URL || 'https://wallhaven.cc/api/v1';
+const WALLHAVEN_API_KEY = process.env.WALLHAVEN_API_KEY;
 
-interface RouteParams {
-  params: {
-    id: string;
-  };
+interface RouteContext {
+  params: Promise<{ id: string }>;
 }
 
 export async function GET(
   request: NextRequest,
-  { params }: RouteParams
+  context: RouteContext 
 ) {
   try {
-    const { id } = params;
+
+    const { id } = await context.params;
 
     if (!WALLHAVEN_BASE_URL || WALLHAVEN_BASE_URL === 'undefined') {
       throw new Error('WALLHAVEN_API_URL não está configurado');
     }
-
 
     const wallhavenUrl = new URL(`${WALLHAVEN_BASE_URL}/w/${id}`);
     
@@ -44,11 +42,13 @@ export async function GET(
 
     const data = await response.json();
 
+    const origin = getOrigin(request);
+
     return NextResponse.json(data, {
       status: 200,
       headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+        'Access-Control-Allow-Origin': origin,
+        'Access-Control-Allow-Methods': 'GET, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type, Authorization',
         'Cache-Control': 's-maxage=3600, stale-while-revalidate=300', 
       },
@@ -56,6 +56,8 @@ export async function GET(
 
   } catch (error) {
     console.error('Erro na API proxy do Wallhaven:', error);
+    
+    const origin = getOrigin(request);
     
     return NextResponse.json(
       { 
@@ -69,8 +71,8 @@ export async function GET(
       { 
         status: 500,
         headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+          'Access-Control-Allow-Origin': origin,
+          'Access-Control-Allow-Methods': 'GET, OPTIONS',
           'Access-Control-Allow-Headers': 'Content-Type, Authorization',
         },
       }
@@ -78,12 +80,27 @@ export async function GET(
   }
 }
 
+function getOrigin(request: NextRequest): string {
+  const allowedOrigins = [
+    'https://wally.app',
+    'https://www.wally.app',
+    process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null,
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+  ].filter(Boolean) as string[];
+
+  const origin = request.headers.get('origin');
+  return allowedOrigins.includes(origin || '') ? origin! : allowedOrigins[0];
+}
+
 export async function OPTIONS(request: NextRequest) {
+  const origin = getOrigin(request);
+  
   return new NextResponse(null, {
     status: 200,
     headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Origin': origin,
+      'Access-Control-Allow-Methods': 'GET, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     },
   });
