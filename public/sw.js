@@ -1,58 +1,68 @@
-// public/sw.js
-const CACHE_NAME = 'wally-v1';
-const urlsToCache = [
+const CACHE_NAME = 'wally-v1.0.0';
+const STATIC_CACHE = 'wally-static-v1.0.0';
+const API_CACHE = 'wally-api-v1.0.0';
+
+const STATIC_ASSETS = [
   '/',
+  '/offline.html',
   '/manifest.json',
   '/icon-192x192.png',
-  '/icon-512x512.png'
+  '/icon-512x512.png',
 ];
 
-// Install event
-self.addEventListener('install', event => {
+const CACHE_STRATEGIES = {
+  static: 'cache-first',
+  api: 'network-first',
+  images: 'cache-first',
+};
+
+self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => {
-        return cache.addAll(urlsToCache);
-      })
-  );
-  
-  // Force the waiting service worker to become the active service worker
-  self.skipWaiting();
-});
-
-// Activate event
-self.addEventListener('activate', event => {
-  event.waitUntil(
-    caches.keys().then(cacheNames => {
-      return Promise.all(
-        cacheNames.map(cacheName => {
-          if (cacheName !== CACHE_NAME) {
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    })
-  );
-  
-  // Claim all clients immediately
-  self.clients.claim();
-});
-
-// Fetch event
-self.addEventListener('fetch', event => {
-  event.respondWith(
-    caches.match(event.request)
-      .then(response => {
-        // Return cached version or fetch from network
-        return response || fetch(event.request);
-      }
-    )
+    Promise.all([
+      caches.open(STATIC_CACHE).then(cache => cache.addAll(STATIC_ASSETS)),
+      self.skipWaiting(),
+    ])
   );
 });
 
-// Listen for messages from the client
-self.addEventListener('message', event => {
-  if (event.data && event.data.type === 'SKIP_WAITING') {
-    self.skipWaiting();
+self.addEventListener('fetch', (event) => {
+  const { request } = event;
+  const url = new URL(request.url);
+
+  if (url.pathname.startsWith('/api/')) {
+    event.respondWith(networkFirstStrategy(request, API_CACHE));
+    return;
   }
+
+  if (request.destination === 'image') {
+    event.respondWith(cacheFirstStrategy(request, CACHE_NAME));
+    return;
+  }
+
+  event.respondWith(cacheFirstStrategy(request, STATIC_CACHE));
 });
+
+async function networkFirstStrategy(request, cacheName) {
+  try {
+    const response = await fetch(request);
+    const cache = await caches.open(cacheName);
+    cache.put(request, response.clone());
+    return response;
+  } catch {
+    return caches.match(request) || caches.match('/offline.html');
+  }
+}
+
+async function cacheFirstStrategy(request, cacheName) {
+  const cached = await caches.match(request);
+  if (cached) return cached;
+  
+  try {
+    const response = await fetch(request);
+    const cache = await caches.open(cacheName);
+    cache.put(request, response.clone());
+    return response;
+  } catch {
+    return caches.match('/offline.html');
+  }
+}

@@ -3,7 +3,11 @@ import { WallhavenSearchResponse, WallhavenSearchParams, WallhavenWallpaper } fr
 class WallhavenAPI {
   private baseUrl = '/api/wallhaven';
 
-  private async makeRequest<T>(endpoint: string, params?: Record<string, string>): Promise<T> {
+  private async makeRequest<T>(
+    endpoint: string, 
+    params?: Record<string, string>, 
+    signal?: AbortSignal
+  ): Promise<T> {
     const url = new URL(`${this.baseUrl}${endpoint}`, window.location.origin);
     
     if (params) {
@@ -18,23 +22,36 @@ class WallhavenAPI {
         headers: {
           'Content-Type': 'application/json',
         },
+        signal,
       });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
+        
+        if (response.status === 429) {
+          throw new Error('Muitas requisições. Aguarde um momento antes de tentar novamente.');
+        }
+        
         throw new Error(errorData.error || `API Error: ${response.status} - ${response.statusText}`);
       }
 
       return await response.json();
     } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw error;
+      }
+      
       console.error('Wallhaven API Error:', error);
       throw error;
     }
   }
 
-  async searchWallpapers(params: WallhavenSearchParams = {}): Promise<WallhavenSearchResponse> {
+  async searchWallpapers(
+    params: WallhavenSearchParams = {}, 
+    signal?: AbortSignal
+  ): Promise<WallhavenSearchResponse> {
     const searchParams: Record<string, string> = {
-      purity: params.purity || '100', 
+      purity: params.purity || '100',
       sorting: params.sorting || 'date_added',
       order: params.order || 'desc',
       page: params.page?.toString() || '1',
@@ -48,20 +65,22 @@ class WallhavenAPI {
     if (params.colors) searchParams.colors = params.colors;
     if (params.topRange) searchParams.topRange = params.topRange;
 
-    return this.makeRequest<WallhavenSearchResponse>('/search', searchParams);
+    return this.makeRequest<WallhavenSearchResponse>('/search', searchParams, signal);
   }
 
-  async getWallpaper(id: string): Promise<{ data: WallhavenWallpaper }> {
-    return this.makeRequest<{ data: WallhavenWallpaper }>(`/wallpaper/${id}`);
+  async getWallpaper(id: string, signal?: AbortSignal): Promise<{ data: WallhavenWallpaper }> {
+    return this.makeRequest<{ data: WallhavenWallpaper }>(`/wallpaper/${id}`, undefined, signal);
   }
 
   async downloadWallpaper(wallpaper: WallhavenWallpaper): Promise<void> {
     try {
-
       const proxyUrl = `/api/wallhaven/download?url=${encodeURIComponent(wallpaper.path)}`;
       const response = await fetch(proxyUrl);
       
       if (!response.ok) {
+        if (response.status === 429) {
+          throw new Error('Muitos downloads. Aguarde alguns minutos antes de tentar novamente.');
+        }
         throw new Error('Falha ao baixar o wallpaper');
       }
       
@@ -77,7 +96,7 @@ class WallhavenAPI {
       window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Erro ao baixar wallpaper:', error);
-      throw new Error('Falha ao baixar o wallpaper');
+      throw error;
     }
   }
 }

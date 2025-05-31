@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 const WALLHAVEN_BASE_URL = process.env.NEXT_PUBLIC_WALLHAVEN_API_URL || 'https://wallhaven.cc/api/v1';
-const WALLHAVEN_API_KEY = process.env.NEXT_PUBLIC_WALLHAVEN_API_KEY;
+const WALLHAVEN_API_KEY = process.env.WALLHAVEN_API_KEY;;
 
 interface RouteParams {
   params: {
