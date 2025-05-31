@@ -1,50 +1,64 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Image from "next/image"
-import { motion, AnimatePresence } from "framer-motion"
-import { X, Heart, Download } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { useState } from "react";
+import Image from "next/image";
+import { motion, AnimatePresence } from "framer-motion";
+import { X, Heart, Download, Eye, Calendar, Monitor, Palette } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { WallhavenWallpaper } from "@/types/wallhaven";
+import { wallhavenAPI } from "@/lib/wallhaven-api";
 
 interface WallpaperModalProps {
-  wallpaper: {
-    id: number
-    title: string
-    author: string
-    resolution: string
-    imageUrl: string
-  }
-  onClose: () => void
+  wallpaper: WallhavenWallpaper;
+  onClose: () => void;
 }
 
 export function WallpaperModal({ wallpaper, onClose }: WallpaperModalProps) {
-  const [isSaved, setIsSaved] = useState(false)
+  const [isSaved, setIsSaved] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   const handleSave = () => {
-    // Salvar no localStorage
-    const saved = localStorage.getItem("saved-wallpapers")
-    const savedWallpapers = saved ? JSON.parse(saved) : []
+    try {
+      const saved = localStorage.getItem("saved-wallpapers");
+      const savedWallpapers = saved ? JSON.parse(saved) : [];
 
-    // Verificar se já está salvo
-    const isAlreadySaved = savedWallpapers.some((w: any) => w.id === wallpaper.id)
+      const isAlreadySaved = savedWallpapers.some((w: WallhavenWallpaper) => w.id === wallpaper.id);
 
-    if (!isAlreadySaved) {
-      savedWallpapers.push(wallpaper)
-      localStorage.setItem("saved-wallpapers", JSON.stringify(savedWallpapers))
+      if (!isAlreadySaved) {
+        savedWallpapers.push(wallpaper);
+        localStorage.setItem("saved-wallpapers", JSON.stringify(savedWallpapers));
+        setIsSaved(true);
+      }
+    } catch (error) {
+      console.error("Erro ao salvar wallpaper:", error);
     }
+  };
 
-    setIsSaved(true)
-  }
+  const handleDownload = async () => {
+    setIsDownloading(true);
+    try {
+      await wallhavenAPI.downloadWallpaper(wallpaper);
+    } catch (error) {
+      console.error("Erro ao baixar wallpaper:", error);
+    } finally {
+      setIsDownloading(false);
+    }
+  };
 
-  const handleDownload = () => {
-    // Simulação de download
-    const link = document.createElement("a")
-    link.href = wallpaper.imageUrl
-    link.download = `wallpaper-${wallpaper.id}.jpg`
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-  }
+  const formatFileSize = (bytes: number): string => {
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    if (bytes === 0) return '0 Bytes';
+    const i = Math.floor(Math.log(bytes) / Math.log(1024));
+    return Math.round(bytes / Math.pow(1024, i) * 100) / 100 + ' ' + sizes[i];
+  };
+
+  const formatDate = (dateString: string): string => {
+    return new Date(dateString).toLocaleDateString('pt-BR');
+  };
+
+  // Usar a melhor imagem disponível para preview
+  const previewImage = wallpaper.thumbs?.original || wallpaper.path || '/placeholder.svg';
 
   return (
     <AnimatePresence>
@@ -53,6 +67,7 @@ export function WallpaperModal({ wallpaper, onClose }: WallpaperModalProps) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
+        onClick={onClose}
       >
         <motion.div
           className="bg-card border border-border rounded-xl overflow-hidden max-w-md w-full max-h-[90vh] flex flex-col"
@@ -60,6 +75,7 @@ export function WallpaperModal({ wallpaper, onClose }: WallpaperModalProps) {
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
           transition={{ type: "spring", duration: 0.5 }}
+          onClick={(e) => e.stopPropagation()}
         >
           <div className="relative">
             <Button
@@ -70,37 +86,121 @@ export function WallpaperModal({ wallpaper, onClose }: WallpaperModalProps) {
             >
               <X className="h-4 w-4" />
             </Button>
-            <div className="relative aspect-[9/16] max-h-[70vh]">
+            
+            <div className="relative aspect-[9/16] max-h-[50vh]">
               <Image
-                src={wallpaper.imageUrl || "/placeholder.svg"}
-                alt={wallpaper.title}
+                src={previewImage}
+                alt={`Wallpaper ${wallpaper.id}`}
                 fill
                 className="object-cover"
+                priority
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.src = '/placeholder.svg';
+                }}
               />
             </div>
           </div>
 
-          <div className="p-4 space-y-4">
+          <div className="p-4 space-y-4 overflow-y-auto">
+            {/* Informações básicas */}
             <div>
-              <h3 className="font-bold text-lg font-display">{wallpaper.title}</h3>
-              <p className="text-sm text-muted-foreground">
-                Por {wallpaper.author} • {wallpaper.resolution}
-              </p>
+              <div className="flex items-center justify-between mb-2">
+                <Badge variant="secondary" className="text-xs capitalize">
+                  {wallpaper.category}
+                </Badge>
+                <div className="flex items-center space-x-1 text-sm text-muted-foreground">
+                  <Eye className="w-4 h-4" />
+                  <span>{wallpaper.views.toLocaleString()}</span>
+                </div>
+              </div>
+              
+              <div className="space-y-2 text-sm">
+                <div className="flex items-center space-x-2">
+                  <Monitor className="w-4 h-4 text-muted-foreground" />
+                  <span>{wallpaper.resolution}</span>
+                  <span className="text-muted-foreground">({wallpaper.ratio})</span>
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <Calendar className="w-4 h-4 text-muted-foreground" />
+                  <span>{formatDate(wallpaper.created_at)}</span>
+                </div>
+
+                {wallpaper.source && (
+                  <div className="flex items-center space-x-2">
+                    <span className="text-muted-foreground text-xs">Fonte:</span>
+                    <a 
+                      href={wallpaper.source} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-xs text-primary hover:underline truncate max-w-48"
+                    >
+                      {wallpaper.source}
+                    </a>
+                  </div>
+                )}
+              </div>
             </div>
 
-            <div className="flex gap-2">
-              <Button className="flex-1 bg-green-800 hover:bg-green-700" onClick={handleSave} disabled={isSaved}>
+            {/* Cores */}
+            {wallpaper.colors && wallpaper.colors.length > 0 && (
+              <div>
+                <h4 className="text-sm font-medium mb-2 flex items-center">
+                  <Palette className="w-4 h-4 mr-1" />
+                  Cores
+                </h4>
+                <div className="flex flex-wrap gap-2">
+                  {wallpaper.colors.slice(0, 8).map((color, index) => (
+                    <div 
+                      key={index}
+                      className="flex items-center space-x-1"
+                    >
+                      <div 
+                        className="w-4 h-4 rounded border border-border"
+                        style={{ backgroundColor: color }}
+                      />
+                      <span className="text-xs text-muted-foreground font-mono">
+                        {color}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Detalhes técnicos */}
+            <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+              <div>Tipo: {wallpaper.file_type}</div>
+              <div>Tamanho: {formatFileSize(wallpaper.file_size)}</div>
+              <div>Dimensões: {wallpaper.dimension_x}x{wallpaper.dimension_y}</div>
+              <div>Favoritos: {wallpaper.favorites}</div>
+            </div>
+
+            {/* Botões de ação */}
+            <div className="flex gap-2 pt-2">
+              <Button 
+                className="flex-1 bg-green-800 hover:bg-green-700" 
+                onClick={handleSave} 
+                disabled={isSaved}
+              >
                 <Heart className="mr-2 h-4 w-4" />
                 {isSaved ? "Salvo" : "Salvar"}
               </Button>
-              <Button variant="outline" className="flex-1" onClick={handleDownload}>
+              
+              <Button 
+                variant="outline" 
+                className="flex-1" 
+                onClick={handleDownload}
+                disabled={isDownloading}
+              >
                 <Download className="mr-2 h-4 w-4" />
-                Download
+                {isDownloading ? "Baixando..." : "Download"}
               </Button>
             </div>
           </div>
         </motion.div>
       </motion.div>
     </AnimatePresence>
-  )
+  );
 }
