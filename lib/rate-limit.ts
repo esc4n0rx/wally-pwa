@@ -1,30 +1,45 @@
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 
-const hasRedis = process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN;
+let hasRedis = process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN;
 
 let redis: any;
 let ratelimit: any;
 let downloadRateLimit: any;
 
 if (hasRedis) {
-  redis = Redis.fromEnv();
-  
-  ratelimit = new Ratelimit({
-    redis,
-    limiter: Ratelimit.slidingWindow(100, "1 h"),
-    analytics: true,
-    prefix: "wally",
-  });
+  try {
+    let redisUrl = process.env.UPSTASH_REDIS_REST_URL!;
+    if (!redisUrl.startsWith('http://') && !redisUrl.startsWith('https://')) {
+      redisUrl = `https://${redisUrl}`;
+    }
 
-  downloadRateLimit = new Ratelimit({
-    redis,
-    limiter: Ratelimit.slidingWindow(10, "1 m"),
-    analytics: true,
-    prefix: "wally:download",
-  });
-} else {
-  console.warn('⚠️ Redis não configurado, usando rate limiting em memória (apenas desenvolvimento)');
+    redis = new Redis({
+      url: redisUrl,
+      token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+    });
+    
+    ratelimit = new Ratelimit({
+      redis,
+      limiter: Ratelimit.slidingWindow(100, "1 h"),
+      analytics: true,
+      prefix: "wally",
+    });
+
+    downloadRateLimit = new Ratelimit({
+      redis,
+      limiter: Ratelimit.slidingWindow(10, "1 m"),
+      analytics: true,
+      prefix: "wally:download",
+    });
+  } catch (error) {
+    console.warn('⚠️ Erro ao configurar Redis, usando rate limiting em memória:', error);
+    //hasRedis = false;
+  }
+}
+
+if (!hasRedis) {
+  console.warn('⚠️ Redis não configurado ou erro na configuração, usando rate limiting em memória');
   
   const inMemoryStore = new Map<string, { count: number; resetTime: number }>();
   
@@ -63,7 +78,7 @@ if (hasRedis) {
   });
   
   ratelimit = createMemoryRateLimit(100, 60 * 60 * 1000); 
-  downloadRateLimit = createMemoryRateLimit(10, 60 * 1000);
+  downloadRateLimit = createMemoryRateLimit(10, 60 * 1000); 
 }
 
 export { ratelimit, downloadRateLimit };

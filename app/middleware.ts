@@ -1,3 +1,4 @@
+
 import { NextRequest, NextResponse } from 'next/server';
 import { ratelimit } from '@/lib/rate-limit';
 
@@ -5,30 +6,36 @@ export async function middleware(request: NextRequest) {
 
   if (request.nextUrl.pathname.startsWith('/api/wallhaven')) {
     try {
-      const ip = request.headers.get('x-forwarded-for') ?? '127.0.0.1';
-      const { success, limit, reset, remaining } = await ratelimit.limit(ip);
+      const ip = request.headers.get('x-forwarded-for') ?? 
+                 request.headers.get('x-real-ip') ?? 
+                 '127.0.0.1';
       
-      if (!success) {
-        return new NextResponse('Too Many Requests', { 
-          status: 429,
-          headers: {
-            'X-RateLimit-Limit': limit.toString(),
-            'X-RateLimit-Remaining': remaining.toString(),
-            'X-RateLimit-Reset': new Date(reset).toISOString(),
-          }
-        });
-      }
+      if (ratelimit && typeof ratelimit.limit === 'function') {
+        const { success, limit, reset, remaining } = await ratelimit.limit(ip);
+        
+        if (!success) {
+          return new NextResponse('Too Many Requests', { 
+            status: 429,
+            headers: {
+              'X-RateLimit-Limit': limit?.toString() || '100',
+              'X-RateLimit-Remaining': remaining?.toString() || '0',
+              'X-RateLimit-Reset': reset ? new Date(reset).toISOString() : new Date().toISOString(),
+              'Retry-After': '3600',
+            }
+          });
+        }
 
-      const response = NextResponse.next();
-      
-      response.headers.set('X-RateLimit-Limit', limit.toString());
-      response.headers.set('X-RateLimit-Remaining', remaining.toString());
-      response.headers.set('X-RateLimit-Reset', new Date(reset).toISOString());
-      
-      return response;
+        const response = NextResponse.next();
+        
+        response.headers.set('X-RateLimit-Limit', limit?.toString() || '100');
+        response.headers.set('X-RateLimit-Remaining', remaining?.toString() || '0');
+        response.headers.set('X-RateLimit-Reset', reset ? new Date(reset).toISOString() : new Date().toISOString());
+        
+        return response;
+      }
     } catch (error) {
       console.error('Rate limiting error:', error);
-      return NextResponse.next();
+      // Continue sem rate limiting em caso de erro
     }
   }
 
@@ -38,6 +45,5 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     '/api/wallhaven/:path*',
-    '/((?!_next/static|_next/image|favicon.ico).*)',
   ],
 };
