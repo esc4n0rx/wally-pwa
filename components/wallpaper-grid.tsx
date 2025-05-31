@@ -1,3 +1,4 @@
+// components/wallpaper-grid.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -6,23 +7,28 @@ import { WallpaperModal } from "@/components/wallpaper-modal";
 import { useInView } from "react-intersection-observer";
 import { motion } from "framer-motion";
 import { useWallpapers } from "@/hooks/use-wallpapers";
-import { WallhavenWallpaper } from "@/types/wallhaven";
+import { WallhavenWallpaper, WallhavenSearchParams } from "@/types/wallhaven";
 import { Loader2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface WallpaperGridProps {
   searchQuery?: string;
+  categoryParams?: WallhavenSearchParams; // Novo prop para parâmetros de categoria
 }
 
-export function WallpaperGrid({ searchQuery }: WallpaperGridProps) {
+export function WallpaperGrid({ searchQuery, categoryParams }: WallpaperGridProps) {
   const [selectedWallpaper, setSelectedWallpaper] = useState<WallhavenWallpaper | null>(null);
   
-  // Configurar parâmetros de busca de forma estável
-  const searchParams = {
-    q: searchQuery || undefined,
-    purity: "100" as const,
-    sorting: "date_added" as const,
-    order: "desc" as const,
+  // Configurar parâmetros de busca combinando search e categoria
+  const searchParams: WallhavenSearchParams = {
+    // Parâmetros base da categoria (se fornecidos)
+    ...categoryParams,
+    // Sobrescrever com query de busca se fornecida
+    ...(searchQuery && { q: searchQuery }),
+    // Garantir configurações padrão
+    purity: categoryParams?.purity || "100",
+    sorting: categoryParams?.sorting || "date_added",
+    order: categoryParams?.order || "desc",
   };
 
   const { wallpapers, loading, error, hasMore, loadMore, refresh } = useWallpapers(searchParams);
@@ -58,7 +64,6 @@ export function WallpaperGrid({ searchQuery }: WallpaperGridProps) {
     <>
       <div className="grid grid-cols-2 gap-4">
         {wallpapers.map((wallpaper, index) => {
-          // Verificação de segurança básica
           if (!wallpaper || !wallpaper.id) {
             return null;
           }
@@ -100,6 +105,11 @@ export function WallpaperGrid({ searchQuery }: WallpaperGridProps) {
       {!loading && wallpapers.length === 0 && !error && (
         <div className="text-center py-12">
           <p className="text-xl text-muted-foreground">Nenhum wallpaper encontrado</p>
+          {categoryParams && (
+            <p className="text-sm text-muted-foreground mt-2">
+              Tente navegar para outras categorias
+            </p>
+          )}
         </div>
       )}
 

@@ -1,36 +1,10 @@
+// components/category-grid.tsx
 "use client"
 
 import Link from "next/link"
 import Image from "next/image"
 import { motion } from "framer-motion"
-
-const categories = [
-  {
-    id: "nature",
-    name: "Natureza",
-    imageUrl: "/placeholder.svg?height=300&width=600&text=Natureza",
-  },
-  {
-    id: "abstract",
-    name: "Abstrato",
-    imageUrl: "/placeholder.svg?height=300&width=600&text=Abstrato",
-  },
-  {
-    id: "cities",
-    name: "Cidades",
-    imageUrl: "/placeholder.svg?height=300&width=600&text=Cidades",
-  },
-  {
-    id: "animals",
-    name: "Animais",
-    imageUrl: "/placeholder.svg?height=300&width=600&text=Animais",
-  },
-  {
-    id: "minimalist",
-    name: "Minimalista",
-    imageUrl: "/placeholder.svg?height=300&width=600&text=Minimalista",
-  },
-]
+import { categories } from "@/lib/categories"
 
 export function CategoryGrid() {
   return (
@@ -44,13 +18,39 @@ export function CategoryGrid() {
         >
           <Link href={`/categorias/${category.id}`}>
             <motion.div
-              className="relative h-32 rounded-xl overflow-hidden"
+              className="relative h-32 rounded-xl overflow-hidden group"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
-              <Image src={category.imageUrl || "/placeholder.svg"} alt={category.name} fill className="object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end p-4">
-                <h3 className="text-white text-xl font-bold font-display">{category.name}</h3>
+              <Image 
+                src={category.imageUrl} 
+                alt={category.name} 
+                fill 
+                className="object-cover transition-transform duration-500 group-hover:scale-110" 
+                sizes="(max-width: 768px) 100vw, 50vw"
+                priority={index < 4} // Priorizar as primeiras 4 imagens
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+              <div className="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              
+              <div className="absolute inset-0 flex items-end p-4">
+                <div className="w-full">
+                  <h3 className="text-white text-xl font-bold font-display mb-1">
+                    {category.name}
+                  </h3>
+                  <p className="text-white/80 text-sm">
+                    Explore wallpapers de {category.name.toLowerCase()}
+                  </p>
+                </div>
+              </div>
+
+              {/* Indicador de categoria */}
+              <div className="absolute top-3 right-3">
+                <div className="bg-black/40 backdrop-blur-md rounded-full px-3 py-1">
+                  <span className="text-white/90 text-xs font-medium">
+                    Categoria
+                  </span>
+                </div>
               </div>
             </motion.div>
           </Link>
