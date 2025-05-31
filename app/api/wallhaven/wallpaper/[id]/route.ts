@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const WALLHAVEN_BASE_URL = process.env.NEXT_PUBLIC_WALLHAVEN_API_URL;
+// Fallback para URL da API se a variável de ambiente não estiver definida
+const WALLHAVEN_BASE_URL = process.env.NEXT_PUBLIC_WALLHAVEN_API_URL || 'https://wallhaven.cc/api/v1';
 const WALLHAVEN_API_KEY = process.env.NEXT_PUBLIC_WALLHAVEN_API_KEY;
 
 interface RouteParams {
@@ -16,13 +17,20 @@ export async function GET(
   try {
     const { id } = params;
 
+    // Verificar se a URL base está definida
+    if (!WALLHAVEN_BASE_URL || WALLHAVEN_BASE_URL === 'undefined') {
+      throw new Error('WALLHAVEN_API_URL não está configurado');
+    }
+
     // Construir URL da API do Wallhaven
     const wallhavenUrl = new URL(`${WALLHAVEN_BASE_URL}/w/${id}`);
     
     // Adicionar API key se disponível
-    if (WALLHAVEN_API_KEY) {
+    if (WALLHAVEN_API_KEY && WALLHAVEN_API_KEY !== 'undefined') {
       wallhavenUrl.searchParams.append('apikey', WALLHAVEN_API_KEY);
     }
+
+    console.log('Fazendo requisição para:', wallhavenUrl.toString());
 
     // Fazer requisição para o Wallhaven
     const response = await fetch(wallhavenUrl.toString(), {
@@ -34,7 +42,8 @@ export async function GET(
     });
 
     if (!response.ok) {
-      throw new Error(`Wallhaven API Error: ${response.status} - ${response.statusText}`);
+      const errorText = await response.text().catch(() => 'Erro desconhecido');
+      throw new Error(`Wallhaven API Error: ${response.status} - ${response.statusText} - ${errorText}`);
     }
 
     const data = await response.json();
@@ -56,7 +65,11 @@ export async function GET(
     return NextResponse.json(
       { 
         error: 'Erro ao buscar wallpaper',
-        details: error instanceof Error ? error.message : 'Erro desconhecido'
+        details: error instanceof Error ? error.message : 'Erro desconhecido',
+        config: {
+          baseUrl: WALLHAVEN_BASE_URL,
+          hasApiKey: !!WALLHAVEN_API_KEY
+        }
       },
       { 
         status: 500,

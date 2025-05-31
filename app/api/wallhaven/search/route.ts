@@ -1,11 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const WALLHAVEN_BASE_URL = process.env.NEXT_PUBLIC_WALLHAVEN_API_URL;
+// Fallback para URL da API se a variável de ambiente não estiver definida
+const WALLHAVEN_BASE_URL = process.env.NEXT_PUBLIC_WALLHAVEN_API_URL || 'https://wallhaven.cc/api/v1';
 const WALLHAVEN_API_KEY = process.env.NEXT_PUBLIC_WALLHAVEN_API_KEY;
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
+    
+    // Verificar se a URL base está definida
+    if (!WALLHAVEN_BASE_URL || WALLHAVEN_BASE_URL === 'undefined') {
+      throw new Error('WALLHAVEN_API_URL não está configurado');
+    }
     
     // Construir URL da API do Wallhaven
     const wallhavenUrl = new URL(`${WALLHAVEN_BASE_URL}/search`);
@@ -16,9 +22,11 @@ export async function GET(request: NextRequest) {
     });
     
     // Adicionar API key se disponível
-    if (WALLHAVEN_API_KEY) {
+    if (WALLHAVEN_API_KEY && WALLHAVEN_API_KEY !== 'undefined') {
       wallhavenUrl.searchParams.append('apikey', WALLHAVEN_API_KEY);
     }
+
+    console.log('Fazendo requisição para:', wallhavenUrl.toString());
 
     // Fazer requisição para o Wallhaven
     const response = await fetch(wallhavenUrl.toString(), {
@@ -30,7 +38,8 @@ export async function GET(request: NextRequest) {
     });
 
     if (!response.ok) {
-      throw new Error(`Wallhaven API Error: ${response.status} - ${response.statusText}`);
+      const errorText = await response.text().catch(() => 'Erro desconhecido');
+      throw new Error(`Wallhaven API Error: ${response.status} - ${response.statusText} - ${errorText}`);
     }
 
     const data = await response.json();
@@ -52,7 +61,11 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       { 
         error: 'Erro ao buscar wallpapers',
-        details: error instanceof Error ? error.message : 'Erro desconhecido'
+        details: error instanceof Error ? error.message : 'Erro desconhecido',
+        config: {
+          baseUrl: WALLHAVEN_BASE_URL,
+          hasApiKey: !!WALLHAVEN_API_KEY
+        }
       },
       { 
         status: 500,
