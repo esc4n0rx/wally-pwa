@@ -1,3 +1,4 @@
+// components/bottom-navbar.tsx
 "use client"
 
 import { Home, Grid, Bookmark, Settings } from "lucide-react"
@@ -32,8 +33,8 @@ export function BottomNavbar() {
   ]
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-background border-t border-border z-50">
-      <div className="flex justify-around items-center h-16">
+    <nav className="fixed bottom-0 left-0 right-0 bg-background/80 backdrop-blur-xl border-t border-border z-50 safe-area-bottom">
+      <div className="flex justify-around items-center h-20 px-safe">
         {navItems.map((item) => {
           const isActive = pathname === item.href
 
@@ -41,22 +42,32 @@ export function BottomNavbar() {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex flex-col items-center justify-center w-full h-full ${
+              className={`flex flex-col items-center justify-center w-full h-full relative transition-colors duration-200 ${
                 isActive ? "text-primary" : "text-muted-foreground"
               }`}
             >
-              <div className="relative">
+              <div className="relative p-2">
                 {isActive && (
                   <motion.div
                     layoutId="navbar-indicator"
-                    className="absolute -top-1 -left-1 -right-1 -bottom-1 bg-primary/10 rounded-lg"
+                    className="absolute inset-0 bg-primary/10 rounded-2xl"
                     initial={false}
-                    transition={{ type: "spring", duration: 0.5 }}
+                    transition={{ 
+                      type: "spring", 
+                      duration: 0.6, 
+                      bounce: 0.2 
+                    }}
                   />
                 )}
-                <item.icon className="w-5 h-5" />
+                <item.icon className={`w-6 h-6 relative z-10 transition-transform duration-200 ${
+                  isActive ? "scale-110" : "scale-100"
+                }`} />
               </div>
-              <span className="text-xs mt-1">{item.name}</span>
+              <span className={`text-xs mt-1 font-medium transition-all duration-200 ${
+                isActive ? "font-semibold" : "font-normal"
+              }`}>
+                {item.name}
+              </span>
             </Link>
           )
         })}

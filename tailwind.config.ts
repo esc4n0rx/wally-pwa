@@ -1,13 +1,12 @@
-import type { Config } from "tailwindcss"
-
-const config = {
+/* tailwind.config.js */
+/** @type {import('tailwindcss').Config} */
+module.exports = {
   darkMode: ["class"],
   content: [
-    "./pages/**/*.{ts,tsx}",
-    "./components/**/*.{ts,tsx}",
-    "./app/**/*.{ts,tsx}",
-    "./src/**/*.{ts,tsx}",
-    "*.{js,ts,jsx,tsx,mdx}",
+    './pages/**/*.{ts,tsx}',
+    './components/**/*.{ts,tsx}',
+    './app/**/*.{ts,tsx}',
+    './src/**/*.{ts,tsx}',
   ],
   prefix: "",
   theme: {
@@ -19,6 +18,12 @@ const config = {
       },
     },
     extend: {
+      fontFamily: {
+        sans: ["var(--font-manrope)", "system-ui", "sans-serif"],
+        display: ["var(--font-manrope)", "system-ui", "sans-serif"],
+        heading: ["var(--font-manrope)", "system-ui", "sans-serif"],
+        body: ["var(--font-manrope)", "system-ui", "sans-serif"],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -53,21 +58,17 @@ const config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        green: {
-          800: "#14532d",
-        },
-        purple: {
-          600: "#7c3aed",
-        },
       },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
-      fontFamily: {
-        sans: ["var(--font-sans)"],
-        display: ["var(--font-inter)"],
+      spacing: {
+        'safe-top': 'env(safe-area-inset-top)',
+        'safe-bottom': 'env(safe-area-inset-bottom)',
+        'safe-left': 'env(safe-area-inset-left)',
+        'safe-right': 'env(safe-area-inset-right)',
       },
       keyframes: {
         "accordion-down": {
@@ -78,14 +79,25 @@ const config = {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
+        "slide-up": {
+          from: { transform: "translateY(100%)", opacity: "0" },
+          to: { transform: "translateY(0)", opacity: "1" },
+        },
+        "fade-in": {
+          from: { opacity: "0" },
+          to: { opacity: "1" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "slide-up": "slide-up 0.3s ease-out",
+        "fade-in": "fade-in 0.2s ease-out",
+      },
+      backdropBlur: {
+        xs: '2px',
       },
     },
   },
   plugins: [require("tailwindcss-animate")],
-} satisfies Config
-
-export default config
+}

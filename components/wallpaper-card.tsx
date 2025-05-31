@@ -1,90 +1,121 @@
-"use client";
+// components/wallpaper-card.tsx
+"use client"
 
-import Image from "next/image";
-import { motion } from "framer-motion";
-import { Eye, Heart } from "lucide-react";
-import { WallhavenWallpaper } from "@/types/wallhaven";
+import Image from "next/image"
+import { motion } from "framer-motion"
+import { Eye, Heart, Download } from "lucide-react"
+import { WallhavenWallpaper } from "@/types/wallhaven"
 
 interface WallpaperCardProps {
-  wallpaper: WallhavenWallpaper;
-  onClick?: () => void;
+  wallpaper: WallhavenWallpaper
+  onClick?: () => void
 }
 
 export function WallpaperCard({ wallpaper, onClick }: WallpaperCardProps) {
-  // Verificações de segurança para evitar erros
   if (!wallpaper) {
-    return null;
+    return null
   }
 
   const formatViews = (views: number): string => {
-    if (!views || views === 0) return '0';
+    if (!views || views === 0) return '0'
     if (views >= 1000000) {
-      return `${(views / 1000000).toFixed(1)}M`;
+      return `${(views / 1000000).toFixed(1)}M`
     } else if (views >= 1000) {
-      return `${(views / 1000).toFixed(1)}K`;
+      return `${(views / 1000).toFixed(1)}K`
     }
-    return views.toString();
-  };
+    return views.toString()
+  }
 
-  // Valores padrão para propriedades que podem estar undefined
   const safeWallpaper = {
     id: wallpaper.id || 'unknown',
     views: wallpaper.views || 0,
     favorites: wallpaper.favorites || 0,
     resolution: wallpaper.resolution || 'N/A',
     category: wallpaper.category || 'uncategorized',
-    // Usar thumbs.large como padrão, depois path, depois placeholder
     imageUrl: wallpaper.thumbs?.large || wallpaper.path || '/placeholder.svg',
-  };
+  }
 
   return (
     <motion.div
-      className="rounded-xl overflow-hidden shadow-md bg-card border border-border/50 cursor-pointer group"
+      className="group relative rounded-3xl overflow-hidden bg-card/50 backdrop-blur-sm border-2 border-border/30 hover:border-primary/50 transition-all duration-300 cursor-pointer"
       onClick={onClick}
-      whileHover={{ scale: 1.03 }}
+      whileHover={{ scale: 1.02, y: -4 }}
       whileTap={{ scale: 0.98 }}
-      transition={{ duration: 0.2 }}
+      transition={{ type: "spring", duration: 0.4, bounce: 0.3 }}
+      layout
     >
-      <div className="relative aspect-[9/16]">
+      <div className="relative aspect-[9/16] overflow-hidden">
         <Image 
           src={safeWallpaper.imageUrl} 
           alt={`Wallpaper ${safeWallpaper.id}`} 
           fill 
-          className="object-cover transition-transform duration-300 group-hover:scale-105" 
+          className="object-cover transition-all duration-500 group-hover:scale-110" 
           sizes="(max-width: 768px) 50vw, 33vw"
           loading="lazy"
           onError={(e) => {
-            // Fallback para placeholder se a imagem falhar
-            const target = e.target as HTMLImageElement;
-            target.src = '/placeholder.svg';
+            const target = e.target as HTMLImageElement
+            target.src = '/placeholder.svg'
           }}
         />
         
-        {/* Overlay com informações */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-          <div className="absolute bottom-2 left-2 right-2">
-            <div className="flex items-center justify-between text-white text-xs">
-              <div className="flex items-center space-x-1">
-                <Eye className="w-3 h-3" />
-                <span>{formatViews(safeWallpaper.views)}</span>
+        {/* Gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-300" />
+        
+        {/* Stats overlay */}
+        <motion.div 
+          className="absolute top-3 left-3 right-3 flex justify-between items-start"
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+        >
+          <div className="bg-black/40 backdrop-blur-md rounded-full px-3 py-1">
+            <span className="text-white/90 text-xs font-medium capitalize">
+              {safeWallpaper.category}
+            </span>
+          </div>
+          
+          <div className="bg-black/40 backdrop-blur-md rounded-full px-3 py-1">
+            <span className="text-white/90 text-xs font-medium">
+              {safeWallpaper.resolution}
+            </span>
+          </div>
+        </motion.div>
+        
+        {/* Bottom info */}
+        <motion.div 
+          className="absolute bottom-3 left-3 right-3"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-1 bg-black/40 backdrop-blur-md rounded-full px-3 py-1">
+                <Eye className="w-3 h-3 text-white/80" />
+                <span className="text-white/90 text-xs font-medium">
+                  {formatViews(safeWallpaper.views)}
+                </span>
               </div>
-              <div className="flex items-center space-x-1">
-                <Heart className="w-3 h-3" />
-                <span>{safeWallpaper.favorites}</span>
+              
+              <div className="flex items-center space-x-1 bg-black/40 backdrop-blur-md rounded-full px-3 py-1">
+                <Heart className="w-3 h-3 text-white/80" />
+                <span className="text-white/90 text-xs font-medium">
+                  {safeWallpaper.favorites}
+                </span>
               </div>
             </div>
             
-            <div className="mt-1">
-              <p className="text-white text-xs truncate">
-                {safeWallpaper.resolution}
-              </p>
-              <p className="text-white/80 text-xs truncate capitalize">
-                {safeWallpaper.category}
-              </p>
-            </div>
+            {/* Quick action button */}
+            <motion.div
+              className="bg-primary/90 backdrop-blur-md rounded-full p-2 opacity-0 group-hover:opacity-100 transition-all duration-300"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+            >
+              <Download className="w-4 h-4 text-white" />
+            </motion.div>
           </div>
-        </div>
+        </motion.div>
       </div>
     </motion.div>
-  );
+  )
 }
