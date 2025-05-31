@@ -106,12 +106,12 @@ export default function ConfiguracoesPage() {
 
   return (
     <main className="min-h-dvh bg-gradient-to-br from-background via-background to-muted/20">
-      {/* Container principal que respeita safe areas */}
+      {/* Container principal com safe areas mais agressivas */}
       <div 
-        className="relative"
+        className="relative min-h-dvh"
         style={{
-          paddingTop: `max(var(--safe-area-inset-top), 20px)`,
-          paddingBottom: `calc(100px + var(--safe-area-inset-bottom))`,
+          paddingTop: `max(env(safe-area-inset-top), 60px)`,
+          paddingBottom: `calc(max(env(safe-area-inset-bottom), 34px) + 140px)`,
         }}
       >
         <div className="container px-6 py-8">

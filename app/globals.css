@@ -1,3 +1,4 @@
+/* app/globals.css */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -53,13 +54,202 @@
   * {
     @apply border-border;
   }
+  
+  html {
+    height: 100%;
+    /* Usar a altura dinâmica da viewport que considera o keyboard */
+    height: 100dvh;
+    /* Fallback para dispositivos que não suportam dvh */
+    height: calc(100% + env(safe-area-inset-top));
+    min-height: calc(100% + env(safe-area-inset-top));
+  }
+  
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    min-height: 100vh;
+    min-height: 100dvh;
+    /* Aplicar safe areas para todos os dispositivos */
+    padding-top: env(safe-area-inset-top, 44px); /* 44px fallback para status bar */
+    padding-right: env(safe-area-inset-right, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 34px); /* 34px fallback para home indicator */
+    padding-left: env(safe-area-inset-left, 0px);
+  }
+  
+  /* PWA específico - ajustes mais agressivos para standalone */
+  @media (display-mode: standalone) {
+    body {
+      /* Valores mais altos para PWA standalone */
+      padding-top: max(env(safe-area-inset-top), 44px);
+      padding-bottom: max(env(safe-area-inset-bottom), 34px);
+    }
+  }
+  
+  /* Para dispositivos iOS específicamente */
+  @supports (-webkit-touch-callout: none) {
+    body {
+      padding-top: max(env(safe-area-inset-top), 44px);
+      padding-bottom: max(env(safe-area-inset-bottom), 34px);
+    }
+  }
+}
+
+/* Utilitários para Safe Areas */
+@layer utilities {
+  .safe-top {
+    padding-top: max(env(safe-area-inset-top), 44px);
+  }
+  
+  .safe-bottom {
+    padding-bottom: max(env(safe-area-inset-bottom), 34px);
+  }
+  
+  .safe-left {
+    padding-left: env(safe-area-inset-left, 0px);
+  }
+  
+  .safe-right {
+    padding-right: env(safe-area-inset-right, 0px);
+  }
+  
+  .safe-inset {
+    padding-top: max(env(safe-area-inset-top), 44px);
+    padding-right: env(safe-area-inset-right, 0px);
+    padding-bottom: max(env(safe-area-inset-bottom), 34px);
+    padding-left: env(safe-area-inset-left, 0px);
+  }
+  
+  /* Margin utilities para safe areas */
+  .mt-safe {
+    margin-top: max(env(safe-area-inset-top), 44px);
+  }
+  
+  .mb-safe {
+    margin-bottom: max(env(safe-area-inset-bottom), 34px);
+  }
+  
+  .ml-safe {
+    margin-left: env(safe-area-inset-left, 0px);
+  }
+  
+  .mr-safe {
+    margin-right: env(safe-area-inset-right, 0px);
+  }
+  
+  /* Height utilities considerando safe areas */
+  .h-screen-safe {
+    height: calc(100vh - max(env(safe-area-inset-top), 44px) - max(env(safe-area-inset-bottom), 34px));
+  }
+  
+  .min-h-screen-safe {
+    min-height: calc(100vh - max(env(safe-area-inset-top), 44px) - max(env(safe-area-inset-bottom), 34px));
+  }
+  
+  /* Viewport height dinâmica */
+  .h-dvh {
+    height: 100dvh;
+  }
+  
+  .min-h-dvh {
+    min-height: 100dvh;
+  }
+  
+  /* Utilities específicas para PWA */
+  .pwa-top-padding {
+    padding-top: max(env(safe-area-inset-top), 60px); /* Mais agressivo para PWA */
+  }
+  
+  .pwa-bottom-padding {
+    padding-bottom: max(env(safe-area-inset-bottom), 50px); /* Mais espaço para navbar */
+  }
+  
+  /* Para elementos fixos */
+  .fixed-top-safe {
+    top: max(env(safe-area-inset-top), 44px);
+  }
+  
+  .fixed-bottom-safe {
+    bottom: max(env(safe-area-inset-bottom), 34px);
   }
 }
 
 .font-display {
-  font-family: var(--font-inter);
+  font-family: var(--font-manrope);
   font-weight: 600;
   letter-spacing: -0.025em;
 }
+
+/* Ajustes específicos para diferentes dispositivos */
+@media (display-mode: standalone) {
+  /* PWA instalado - safe areas mais agressivas */
+  .pwa-container {
+    padding-top: max(env(safe-area-inset-top), 60px);
+    padding-bottom: calc(max(env(safe-area-inset-bottom), 34px) + 120px); /* navbar + safe area */
+  }
+}
+
+/* Para telas com notch (iPhone X+) */
+@media screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) {
+  .notch-device {
+    padding-top: max(env(safe-area-inset-top), 44px);
+    padding-bottom: max(env(safe-area-inset-bottom), 34px);
+  }
+}
+
+/* Para telas maiores com notch (iPhone X+ Max) */
+@media screen and (device-width: 414px) and (device-height: 896px) {
+  .notch-device-large {
+    padding-top: max(env(safe-area-inset-top), 44px);
+    padding-bottom: max(env(safe-area-inset-bottom), 34px);
+  }
+}
+
+/* Smooth scrolling */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* High contrast support */
+@media (prefers-contrast: high) {
+  :root {
+    --border: 240 5.9% 20%;
+  }
+  
+  .dark {
+    --border: 240 5.9% 80%;
+  }
+}
+
+/* Animações para PWA */
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-slide-up {
+  animation: slideUp 0.3s ease-out;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.2s ease-out;
+}
+
