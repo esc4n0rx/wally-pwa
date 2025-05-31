@@ -33,8 +33,15 @@ export function BottomNavbar() {
   ]
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-background/80 backdrop-blur-xl border-t border-border z-50 safe-area-bottom">
-      <div className="flex justify-around items-center h-20 px-safe">
+    <nav className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-xl border-t border-border z-50">
+      {/* Container que respeita safe areas */}
+      <div 
+        className="flex justify-around items-center px-4"
+        style={{
+          height: `calc(80px + var(--safe-area-inset-bottom))`,
+          paddingBottom: `var(--safe-area-inset-bottom)`,
+        }}
+      >
         {navItems.map((item) => {
           const isActive = pathname === item.href
 
@@ -42,7 +49,7 @@ export function BottomNavbar() {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex flex-col items-center justify-center w-full h-full relative transition-colors duration-200 ${
+              className={`flex flex-col items-center justify-center flex-1 h-16 relative transition-colors duration-200 ${
                 isActive ? "text-primary" : "text-muted-foreground"
               }`}
             >

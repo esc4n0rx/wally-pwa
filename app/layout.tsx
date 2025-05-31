@@ -66,17 +66,18 @@ export default function RootLayout({
         <link rel="apple-touch-icon" sizes="180x180" href="/icon-192x192.png" />
         <link rel="apple-touch-icon" sizes="167x167" href="/icon-192x192.png" />
         
-        {/* Splash Screens */}
+        {/* Status Bar Style */}
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         
-        {/* Prevent zoom on inputs */}
+        {/* Viewport com safe areas */}
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
       </head>
       
-      <body className={`${manrope.variable} font-sans bg-background text-foreground antialiased safe-area-inset`}>
+      <body className={`${manrope.variable} font-sans antialiased overflow-x-hidden`}>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} storageKey="wally-theme">
           <PWAInstallProvider>
-            <div className="min-h-screen">
+            {/* Container principal que gerencia safe areas globalmente */}
+            <div className="relative min-h-dvh bg-background text-foreground">
               {children}
             </div>
             <PWAServiceWorker />

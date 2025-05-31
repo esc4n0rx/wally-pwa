@@ -15,8 +15,15 @@ export default function HomePage() {
   }, [])
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
-      <div className="safe-area-top">
+    <main className="min-h-dvh bg-gradient-to-br from-background via-background to-muted/20">
+      {/* Container principal que respeita safe areas */}
+      <div 
+        className="relative"
+        style={{
+          paddingTop: `max(var(--safe-area-inset-top), 20px)`,
+          paddingBottom: `calc(100px + var(--safe-area-inset-bottom))`, // 100px para a navbar + safe area
+        }}
+      >
         <div className="container px-6 py-8">
           <div className="flex flex-col items-center mb-8">
             <div className="mb-6">
@@ -36,9 +43,7 @@ export default function HomePage() {
         </div>
       </div>
       
-      <div className="pb-24">
-        <BottomNavbar />
-      </div>
+      <BottomNavbar />
     </main>
   )
 }
