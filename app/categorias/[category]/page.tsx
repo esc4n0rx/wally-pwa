@@ -4,16 +4,16 @@ import { getCategoryById } from "@/lib/categories"
 import { notFound } from "next/navigation"
 
 interface CategoryPageProps {
-  params: {
-    category: string
-  }
+  params: Promise<{ category: string }>; 
 }
 
-export default function CategoryPage({ params }: CategoryPageProps) {
-  const category = getCategoryById(params.category)
+export default async function CategoryPage({ params }: CategoryPageProps) {
+
+  const { category } = await params;
+  const categoryData = getCategoryById(category);
   
-  if (!category) {
-    notFound()
+  if (!categoryData) {
+    notFound();
   }
 
   return (
@@ -28,15 +28,15 @@ export default function CategoryPage({ params }: CategoryPageProps) {
         <div className="container px-4 py-6">
           <div className="mb-6 text-center">
             <h1 className="text-3xl font-bold mb-2 font-display">
-              {category.name}
+              {categoryData.name}
             </h1>
             <p className="text-muted-foreground">
-              Wallpapers selecionados de {category.name.toLowerCase()}
+              Wallpapers selecionados de {categoryData.name.toLowerCase()}
             </p>
           </div>
           
           <WallpaperGrid 
-            categoryParams={category.searchParams}
+            categoryParams={categoryData.searchParams}
           />
         </div>
       </div>
@@ -46,17 +46,18 @@ export default function CategoryPage({ params }: CategoryPageProps) {
 }
 
 export async function generateMetadata({ params }: CategoryPageProps) {
-  const category = getCategoryById(params.category)
+  const { category } = await params; 
+  const categoryData = getCategoryById(category);
   
-  if (!category) {
+  if (!categoryData) {
     return {
       title: 'Categoria não encontrada - Wally',
     }
   }
 
   return {
-    title: `${category.name} - Wallpapers | Wally`,
-    description: `Explore os melhores wallpapers de ${category.name.toLowerCase()} para seu dispositivo`,
+    title: `${categoryData.name} - Wallpapers | Wally`,
+    description: `Explore os melhores wallpapers de ${categoryData.name.toLowerCase()} para seu dispositivo`,
   }
 }
 
