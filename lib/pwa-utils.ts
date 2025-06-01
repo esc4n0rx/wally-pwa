@@ -1,26 +1,25 @@
-// lib/pwa-utils.ts
+
 export const isPWAInstalled = (): boolean => {
-  // PWA instalado (modo standalone)
+
   if (window.matchMedia('(display-mode: standalone)').matches) {
     return true
   }
-  
-  // iOS Safari PWA
+
   if ((window.navigator as any).standalone === true) {
     return true
   }
   
-  // Android PWA - verificar se está em modo app
+
   if (window.matchMedia('(display-mode: fullscreen)').matches) {
     return true
   }
   
-  // Verificar se está sendo executado em um contexto de app
+
   if (document.referrer.includes('android-app://')) {
     return true
   }
   
-  // Verificar user agent para detectar PWA (WebView)
+
   if (navigator.userAgent.includes('wv')) {
     return true
   }

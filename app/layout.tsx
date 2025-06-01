@@ -1,4 +1,3 @@
-// app/layout.tsx
 import type React from "react"
 import type { Metadata, Viewport } from "next/types"
 import { Manrope } from "next/font/google"
@@ -18,7 +17,7 @@ export const metadata: Metadata = {
   title: "Wally - Wallpapers para seu dispositivo",
   description: "Encontre os melhores wallpapers para seu dispositivo móvel",
   manifest: "/manifest.json",
-  generator: 'v0.dev',
+  generator: 'Paulo Oliveira',
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
@@ -76,7 +75,6 @@ export default function RootLayout({
       <body className={`${manrope.variable} font-sans antialiased overflow-x-hidden`}>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} storageKey="wally-theme">
           <PWAInstallProvider>
-            {/* Container principal que gerencia safe areas globalmente */}
             <div className="relative min-h-dvh bg-background text-foreground">
               {children}
             </div>

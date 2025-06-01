@@ -1,4 +1,4 @@
-// components/type-animation.tsx
+
 "use client"
 
 import { useEffect, useState } from "react"
@@ -24,7 +24,6 @@ export function TypeAnimation({ text, className, speed = 150 }: TypeAnimationPro
 
       return () => clearTimeout(timeout)
     } else {
-      // Hide cursor after animation completes
       const timeout = setTimeout(() => {
         setShowCursor(false)
       }, 2000)

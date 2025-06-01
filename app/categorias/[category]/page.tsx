@@ -1,4 +1,3 @@
-// app/categorias/[category]/page.tsx
 import { BottomNavbar } from "@/components/bottom-navbar"
 import { WallpaperGrid } from "@/components/wallpaper-grid"
 import { getCategoryById } from "@/lib/categories"
@@ -46,7 +45,6 @@ export default function CategoryPage({ params }: CategoryPageProps) {
   )
 }
 
-// Gerar metadata dinâmica
 export async function generateMetadata({ params }: CategoryPageProps) {
   const category = getCategoryById(params.category)
   
@@ -62,7 +60,6 @@ export async function generateMetadata({ params }: CategoryPageProps) {
   }
 }
 
-// Gerar rotas estáticas para melhor performance
 export async function generateStaticParams() {
   return [
     { category: 'anime' },

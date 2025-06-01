@@ -1,4 +1,3 @@
-// components/wallpaper-grid.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -13,19 +12,15 @@ import { Button } from "@/components/ui/button";
 
 interface WallpaperGridProps {
   searchQuery?: string;
-  categoryParams?: WallhavenSearchParams; // Novo prop para parâmetros de categoria
+  categoryParams?: WallhavenSearchParams; 
 }
 
 export function WallpaperGrid({ searchQuery, categoryParams }: WallpaperGridProps) {
   const [selectedWallpaper, setSelectedWallpaper] = useState<WallhavenWallpaper | null>(null);
   
-  // Configurar parâmetros de busca combinando search e categoria
   const searchParams: WallhavenSearchParams = {
-    // Parâmetros base da categoria (se fornecidos)
     ...categoryParams,
-    // Sobrescrever com query de busca se fornecida
     ...(searchQuery && { q: searchQuery }),
-    // Garantir configurações padrão
     purity: categoryParams?.purity || "100",
     sorting: categoryParams?.sorting || "date_added",
     order: categoryParams?.order || "desc",
@@ -38,7 +33,6 @@ export function WallpaperGrid({ searchQuery, categoryParams }: WallpaperGridProp
     triggerOnce: false,
   });
 
-  // Effect para trigger do scroll infinito
   useEffect(() => {
     if (inView && hasMore && !loading) {
       loadMore();
@@ -84,24 +78,20 @@ export function WallpaperGrid({ searchQuery, categoryParams }: WallpaperGridProp
         })}
       </div>
 
-      {/* Loading indicator */}
       {loading && (
         <div className="flex justify-center items-center py-8">
           <Loader2 className="w-8 h-8 animate-spin text-primary" />
         </div>
       )}
 
-      {/* Elemento de observação para o scroll infinito */}
       {hasMore && !loading && <div ref={ref} className="h-10 mt-4" />}
 
-      {/* Mensagem quando não há mais wallpapers */}
       {!hasMore && wallpapers.length > 0 && (
         <div className="text-center py-8 text-muted-foreground">
           <p>Você viu todos os wallpapers disponíveis! 🎉</p>
         </div>
       )}
 
-      {/* Mensagem quando não há wallpapers */}
       {!loading && wallpapers.length === 0 && !error && (
         <div className="text-center py-12">
           <p className="text-xl text-muted-foreground">Nenhum wallpaper encontrado</p>
@@ -113,7 +103,6 @@ export function WallpaperGrid({ searchQuery, categoryParams }: WallpaperGridProp
         </div>
       )}
 
-      {/* Modal para visualização do wallpaper */}
       {selectedWallpaper && (
         <WallpaperModal 
           wallpaper={selectedWallpaper} 

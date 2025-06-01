@@ -1,4 +1,3 @@
-// components/pwa-install-provider.tsx (versão final)
 "use client"
 
 import { createContext, useContext, useEffect, useState } from "react"
@@ -38,11 +37,11 @@ export function PWAInstallProvider({ children }: PWAInstallProviderProps) {
   const [isLoading, setIsLoading] = useState(true)
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null)
 
-  // Detectar plataforma e validar instalação
+
   useEffect(() => {
     const initializePWA = async () => {
       try {
-        // Detectar plataforma
+
         const userAgent = navigator.userAgent.toLowerCase()
         const isMobile = /mobi|android|iphone|ipad|ipod/i.test(userAgent)
         
@@ -60,39 +59,38 @@ export function PWAInstallProvider({ children }: PWAInstallProviderProps) {
         
         setPlatform(detectedPlatform)
         
-        // Bloquear desktop imediatamente
         if (detectedPlatform === 'desktop') {
           setIsBlocked(true)
           setIsLoading(false)
           return
         }
         
-        // Aguardar um pouco para permitir que o DOM se estabilize
+
         await new Promise(resolve => setTimeout(resolve, 1000))
         
-        // Verificar se está instalado como PWA
+
         const checkIfInstalled = () => {
-          // PWA instalado (modo standalone)
+
           if (window.matchMedia('(display-mode: standalone)').matches) {
             return true
           }
           
-          // iOS Safari PWA
+
           if ((window.navigator as any).standalone === true) {
             return true
           }
           
-          // Android PWA - verificar se está em modo app
+
           if (window.matchMedia('(display-mode: fullscreen)').matches) {
             return true
           }
           
-          // Verificar se está sendo executado em um contexto de app
+
           if (document.referrer.includes('android-app://')) {
             return true
           }
           
-          // Verificar user agent para detectar PWA
+
           if (navigator.userAgent.includes('wv')) {
             return true
           }
@@ -103,7 +101,6 @@ export function PWAInstallProvider({ children }: PWAInstallProviderProps) {
         const installed = checkIfInstalled()
         setIsInstalled(installed)
         
-        // Se não estiver instalado, mostrar modal obrigatório
         if (!installed) {
           setIsBlocked(true)
           setShowModal(true)
@@ -119,7 +116,6 @@ export function PWAInstallProvider({ children }: PWAInstallProviderProps) {
     initializePWA()
   }, [])
 
-  // Listener para beforeinstallprompt (Android)
   useEffect(() => {
     if (platform !== 'android') return
 
@@ -136,7 +132,6 @@ export function PWAInstallProvider({ children }: PWAInstallProviderProps) {
    }
  }, [platform])
 
- // Listener para quando o app é instalado
  useEffect(() => {
    const handleAppInstalled = () => {
      setIsInstalled(true)
@@ -145,7 +140,6 @@ export function PWAInstallProvider({ children }: PWAInstallProviderProps) {
      setDeferredPrompt(null)
      setIsInstallable(false)
      
-     // Recarregar a página para garantir que está rodando como PWA
      setTimeout(() => {
        window.location.reload()
      }, 1000)
@@ -158,7 +152,6 @@ export function PWAInstallProvider({ children }: PWAInstallProviderProps) {
    }
  }, [])
 
- // Verificar periodicamente se foi instalado (especialmente para iOS)
  useEffect(() => {
    if (platform !== 'ios' || isInstalled || isLoading) return
 
@@ -172,7 +165,6 @@ export function PWAInstallProvider({ children }: PWAInstallProviderProps) {
        setShowModal(false)
        clearInterval(checkInstallation)
        
-       // Recarregar para garantir contexto PWA
        setTimeout(() => {
          window.location.reload()
        }, 1000)
@@ -207,14 +199,13 @@ export function PWAInstallProvider({ children }: PWAInstallProviderProps) {
  }
 
  const handleCloseModal = () => {
-   // Não permitir fechar se não estiver instalado (modal obrigatório)
+
    if (!isInstalled && platform !== 'desktop') {
      return
    }
    setShowModal(false)
  }
 
- // Mostrar loading enquanto valida
  if (isLoading) {
    return <PWALoadingScreen />
  }
@@ -228,13 +219,10 @@ export function PWAInstallProvider({ children }: PWAInstallProviderProps) {
      isBlocked,
      isLoading
    }}>
-     {/* Renderizar conteúdo apenas se não estiver bloqueado */}
      {!isBlocked && children}
      
-     {/* Modal de bloqueio para desktop */}
      {platform === 'desktop' && <DesktopBlockModal />}
      
-     {/* Modal de instalação obrigatória para mobile */}
      {showModal && platform !== 'desktop' && (
        <PWAInstallModal
          platform={platform}

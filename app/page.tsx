@@ -1,4 +1,4 @@
-// app/page.tsx
+
 "use client"
 
 import { useState, useCallback } from "react"
@@ -16,13 +16,10 @@ export default function HomePage() {
 
   return (
     <main className="min-h-dvh bg-gradient-to-br from-background via-background to-muted/20">
-      {/* Container principal com safe areas mais agressivas */}
       <div 
         className="relative min-h-dvh"
         style={{
-          /* Padding top mais agressivo para status bar + notch */
           paddingTop: `max(env(safe-area-inset-top), 60px)`,
-          /* Padding bottom considerando navbar + safe area + margem extra */
           paddingBottom: `calc(max(env(safe-area-inset-bottom), 34px) + 140px)`,
         }}
       >

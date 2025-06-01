@@ -38,9 +38,34 @@ export function WallpaperModal({ wallpaper, onClose }: WallpaperModalProps) {
   const handleDownload = async () => {
     setIsDownloading(true);
     try {
-      await wallhavenAPI.downloadWallpaper(wallpaper);
+      const response = await fetch(wallpaper.path);
+      
+      if (!response.ok) {
+        throw new Error('Falha ao baixar o wallpaper');
+      }
+      
+      const blob = await response.blob();
+      
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      
+      const fileExtension = wallpaper.file_type?.split('/')[1] || 'jpg';
+      link.download = `wallhaven-${wallpaper.id}.${fileExtension}`;
+      
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
     } catch (error) {
       console.error("Erro ao baixar wallpaper:", error);
+      
+      try {
+        window.open(wallpaper.path, '_blank');
+      } catch (fallbackError) {
+        console.error("Erro no fallback:", fallbackError);
+      }
     } finally {
       setIsDownloading(false);
     }
@@ -57,8 +82,7 @@ export function WallpaperModal({ wallpaper, onClose }: WallpaperModalProps) {
     return new Date(dateString).toLocaleDateString('pt-BR');
   };
 
-  // Usar a melhor imagem disponível para preview
-  const previewImage = wallpaper.thumbs?.original || wallpaper.path || '/placeholder.svg';
+  const previewImage = wallpaper.path || wallpaper.thumbs?.original || '/placeholder.svg';
 
   return (
     <AnimatePresence>
@@ -70,7 +94,7 @@ export function WallpaperModal({ wallpaper, onClose }: WallpaperModalProps) {
         onClick={onClose}
       >
         <motion.div
-          className="bg-card border border-border rounded-xl overflow-hidden max-w-md w-full max-h-[90vh] flex flex-col"
+          className="bg-card border border-border rounded-xl overflow-hidden max-w-sm w-full max-h-[85vh] flex flex-col"
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
@@ -81,13 +105,13 @@ export function WallpaperModal({ wallpaper, onClose }: WallpaperModalProps) {
             <Button
               variant="ghost"
               size="icon"
-              className="absolute top-2 right-2 z-10 bg-background/50 backdrop-blur-sm rounded-full"
+              className="absolute top-2 right-2 z-10 bg-background/50 backdrop-blur-sm rounded-full w-8 h-8"
               onClick={onClose}
             >
               <X className="h-4 w-4" />
             </Button>
             
-            <div className="relative aspect-[9/16] max-h-[50vh]">
+            <div className="relative aspect-[9/16] max-h-[40vh]">
               <Image
                 src={previewImage}
                 alt={`Wallpaper ${wallpaper.id}`}
@@ -102,62 +126,45 @@ export function WallpaperModal({ wallpaper, onClose }: WallpaperModalProps) {
             </div>
           </div>
 
-          <div className="p-4 space-y-4 overflow-y-auto">
-            {/* Informações básicas */}
+          <div className="p-4 space-y-3 overflow-y-auto flex-1">
             <div>
               <div className="flex items-center justify-between mb-2">
                 <Badge variant="secondary" className="text-xs capitalize">
                   {wallpaper.category}
                 </Badge>
                 <div className="flex items-center space-x-1 text-sm text-muted-foreground">
-                  <Eye className="w-4 h-4" />
-                  <span>{wallpaper.views.toLocaleString()}</span>
+                  <Eye className="w-3 h-3" />
+                  <span className="text-xs">{wallpaper.views.toLocaleString()}</span>
                 </div>
               </div>
               
-              <div className="space-y-2 text-sm">
-                <div className="flex items-center space-x-2">
-                  <Monitor className="w-4 h-4 text-muted-foreground" />
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div className="flex items-center space-x-1">
+                  <Monitor className="w-3 h-3 text-muted-foreground" />
                   <span>{wallpaper.resolution}</span>
-                  <span className="text-muted-foreground">({wallpaper.ratio})</span>
                 </div>
                 
-                <div className="flex items-center space-x-2">
-                  <Calendar className="w-4 h-4 text-muted-foreground" />
+                <div className="flex items-center space-x-1">
+                  <Calendar className="w-3 h-3 text-muted-foreground" />
                   <span>{formatDate(wallpaper.created_at)}</span>
                 </div>
-
-                {wallpaper.source && (
-                  <div className="flex items-center space-x-2">
-                    <span className="text-muted-foreground text-xs">Fonte:</span>
-                    <a 
-                      href={wallpaper.source} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="text-xs text-primary hover:underline truncate max-w-48"
-                    >
-                      {wallpaper.source}
-                    </a>
-                  </div>
-                )}
               </div>
             </div>
 
-            {/* Cores */}
             {wallpaper.colors && wallpaper.colors.length > 0 && (
               <div>
-                <h4 className="text-sm font-medium mb-2 flex items-center">
-                  <Palette className="w-4 h-4 mr-1" />
+                <h4 className="text-xs font-medium mb-2 flex items-center">
+                  <Palette className="w-3 h-3 mr-1" />
                   Cores
                 </h4>
-                <div className="flex flex-wrap gap-2">
-                  {wallpaper.colors.slice(0, 8).map((color, index) => (
+                <div className="flex flex-wrap gap-1">
+                  {wallpaper.colors.slice(0, 6).map((color, index) => (
                     <div 
                       key={index}
                       className="flex items-center space-x-1"
                     >
                       <div 
-                        className="w-4 h-4 rounded border border-border"
+                        className="w-3 h-3 rounded border border-border"
                         style={{ backgroundColor: color }}
                       />
                       <span className="text-xs text-muted-foreground font-mono">
@@ -169,18 +176,18 @@ export function WallpaperModal({ wallpaper, onClose }: WallpaperModalProps) {
               </div>
             )}
 
-            {/* Detalhes técnicos */}
-            <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+            <div className="grid grid-cols-2 gap-1 text-xs text-muted-foreground">
               <div>Tipo: {wallpaper.file_type}</div>
               <div>Tamanho: {formatFileSize(wallpaper.file_size)}</div>
-              <div>Dimensões: {wallpaper.dimension_x}x{wallpaper.dimension_y}</div>
               <div>Favoritos: {wallpaper.favorites}</div>
+              <div>Dimensões: {wallpaper.dimension_x}x{wallpaper.dimension_y}</div>
             </div>
+          </div>
 
-            {/* Botões de ação */}
-            <div className="flex gap-2 pt-2">
+          <div className="p-4 pt-2 border-t border-border bg-card">
+            <div className="flex gap-2">
               <Button 
-                className="flex-1 bg-green-800 hover:bg-green-700" 
+                className="flex-1 bg-green-800 hover:bg-green-700 h-10" 
                 onClick={handleSave} 
                 disabled={isSaved}
               >
@@ -190,7 +197,7 @@ export function WallpaperModal({ wallpaper, onClose }: WallpaperModalProps) {
               
               <Button 
                 variant="outline" 
-                className="flex-1" 
+                className="flex-1 h-10" 
                 onClick={handleDownload}
                 disabled={isDownloading}
               >

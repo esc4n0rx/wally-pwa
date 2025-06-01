@@ -1,8 +1,8 @@
-// app/api/wallhaven/search/route.ts
+
 import { NextRequest, NextResponse } from 'next/server';
 
 const WALLHAVEN_BASE_URL = process.env.NEXT_PUBLIC_WALLHAVEN_API_URL || 'https://wallhaven.cc/api/v1';
-const WALLHAVEN_API_KEY = process.env.WALLHAVEN_API_KEY; // Remover NEXT_PUBLIC_ para manter no servidor
+const WALLHAVEN_API_KEY = process.env.WALLHAVEN_API_KEY;
 
 export async function GET(request: NextRequest) {
   try {
@@ -14,12 +14,12 @@ export async function GET(request: NextRequest) {
     
     const wallhavenUrl = new URL(`${WALLHAVEN_BASE_URL}/search`);
     
-    // Transferir todos os parâmetros de busca
+
     searchParams.forEach((value, key) => {
       wallhavenUrl.searchParams.append(key, value);
     });
     
-    // Adicionar API key se disponível (apenas no servidor)
+
     if (WALLHAVEN_API_KEY && WALLHAVEN_API_KEY !== 'undefined') {
       wallhavenUrl.searchParams.append('apikey', WALLHAVEN_API_KEY);
     }
@@ -32,7 +32,6 @@ export async function GET(request: NextRequest) {
         'User-Agent': 'Wally-PWA/1.0',
         'Accept': 'application/json',
       },
-      // Cache por 5 minutos
       next: { revalidate: 300 }
     });
 

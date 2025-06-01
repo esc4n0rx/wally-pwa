@@ -1,69 +1,120 @@
-import { NextRequest, NextResponse } from 'next/server';
 
-export async function GET(request: NextRequest) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const imageUrl = searchParams.get('url');
+import { WallhavenSearchResponse, WallhavenSearchParams, WallhavenWallpaper } from '@/types/wallhaven';
 
-    if (!imageUrl) {
-      return NextResponse.json(
-        { error: 'URL da imagem é obrigatória' },
-        { status: 400 }
-      );
-    }
+class WallhavenAPI {
+  private baseUrl = '/api/wallhaven'; 
 
-    // Fazer requisição para a imagem original
-    const response = await fetch(imageUrl, {
-      headers: {
-        'User-Agent': 'Wally-PWA/1.0',
-        'Referer': 'https://wallhaven.cc/',
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`Erro ao baixar imagem: ${response.status}`);
-    }
-
-    const imageData = await response.arrayBuffer();
-    const contentType = response.headers.get('content-type') || 'image/jpeg';
-
-    // Retornar a imagem com headers apropriados
-    return new NextResponse(imageData, {
-      status: 200,
-      headers: {
-        'Content-Type': contentType,
-        'Content-Disposition': 'attachment',
-        'Access-Control-Allow-Origin': '*',
-        'Cache-Control': 'public, max-age=31536000', // Cache por 1 ano
-      },
-    });
-
-  } catch (error) {
-    console.error('Erro no download da imagem:', error);
+  private async makeRequest<T>(endpoint: string, params?: Record<string, string>): Promise<T> {
+    const url = new URL(`${this.baseUrl}${endpoint}`, window.location.origin);
     
-    return NextResponse.json(
-      { 
-        error: 'Erro ao baixar imagem',
-        details: error instanceof Error ? error.message : 'Erro desconhecido'
-      },
-      { 
-        status: 500,
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value) url.searchParams.append(key, value);
+      });
+    }
+
+    try {
+      const response = await fetch(url.toString(), {
+        method: 'GET',
         headers: {
-          'Access-Control-Allow-Origin': '*',
+          'Content-Type': 'application/json',
         },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `API Error: ${response.status} - ${response.statusText}`);
       }
-    );
+
+      return await response.json();
+    } catch (error) {
+      console.error('Wallhaven API Error:', error);
+      throw error;
+    }
+  }
+
+  async searchWallpapers(params: WallhavenSearchParams = {}): Promise<WallhavenSearchResponse> {
+    const searchParams: Record<string, string> = {
+      purity: params.purity || '100', 
+      sorting: params.sorting || 'date_added',
+      order: params.order || 'desc',
+      page: params.page?.toString() || '1',
+    };
+
+
+    if (params.q) searchParams.q = params.q;
+    if (params.categories) searchParams.categories = params.categories;
+    if (params.atleast) searchParams.atleast = params.atleast;
+    if (params.resolutions) searchParams.resolutions = params.resolutions;
+    if (params.ratios) searchParams.ratios = params.ratios;
+    if (params.colors) searchParams.colors = params.colors;
+    if (params.topRange) searchParams.topRange = params.topRange;
+
+    return this.makeRequest<WallhavenSearchResponse>('/search', searchParams);
+  }
+
+  async getWallpaper(id: string): Promise<{ data: WallhavenWallpaper }> {
+    return this.makeRequest<{ data: WallhavenWallpaper }>(`/wallpaper/${id}`);
+  }
+
+  async downloadWallpaper(wallpaper: WallhavenWallpaper): Promise<void> {
+    try {
+
+      const response = await fetch(wallpaper.path, {
+        mode: 'cors',
+        headers: {
+          'Accept': 'image/*',
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error('Falha ao baixar o wallpaper diretamente');
+      }
+      
+      const blob = await response.blob();
+      
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      
+      const fileExtension = wallpaper.file_type?.split('/')[1] || 'jpg';
+      link.download = `wallhaven-${wallpaper.id}.${fileExtension}`;
+      
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+    } catch (error) {
+      console.error('Erro no download direto, tentando via proxy:', error);
+      
+      try {
+
+        const proxyUrl = `/api/wallhaven/download?url=${encodeURIComponent(wallpaper.path)}`;
+        const response = await fetch(proxyUrl);
+        
+        if (!response.ok) {
+          throw new Error('Falha no download via proxy');
+        }
+        
+        const blob = await response.blob();
+        
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `wallhaven-${wallpaper.id}.${wallpaper.file_type.split('/')[1]}`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+        
+      } catch (proxyError) {
+        console.error('Erro no proxy, abrindo em nova aba:', proxyError);
+        
+        window.open(wallpaper.path, '_blank', 'noopener,noreferrer');
+      }
+    }
   }
 }
 
-// Handler para requisições OPTIONS (preflight)
-export async function OPTIONS(request: NextRequest) {
-  return new NextResponse(null, {
-    status: 200,
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
-    },
-  });
-}
+export const wallhavenAPI = new WallhavenAPI();

@@ -1,4 +1,3 @@
-// components/search-input.tsx
 "use client"
 
 import { useState, useCallback, useEffect } from "react"
@@ -90,7 +89,6 @@ export function SearchInput({
         )}
       </div>
       
-      {/* Sugestões populares */}
       {!query && (
         <motion.div
           className="mt-4 flex flex-wrap gap-2"

@@ -20,13 +20,9 @@ export function useWallpapers(searchParams: WallhavenSearchParams = {}): UseWall
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   
-  // Use ref to track the current search params to avoid infinite loops
   const currentSearchParams = useRef<WallhavenSearchParams>(searchParams);
   const isInitialLoad = useRef(true);
 
-  /**
-   * Carregar wallpapers da API
-   */
   const loadWallpapers = useCallback(async (page: number, append: boolean = false) => {
     if (loading) return;
 
@@ -47,7 +43,6 @@ export function useWallpapers(searchParams: WallhavenSearchParams = {}): UseWall
         setWallpapers(newWallpapers);
       }
 
-      // Verificar se há mais páginas
       setHasMore(page < (response.meta?.last_page || 1));
       setCurrentPage(page);
 
@@ -60,18 +55,14 @@ export function useWallpapers(searchParams: WallhavenSearchParams = {}): UseWall
     }
   }, [loading]);
 
-  /**
-   * Carregar mais wallpapers (scroll infinito)
-   */
+
   const loadMore = useCallback(() => {
     if (hasMore && !loading) {
       loadWallpapers(currentPage + 1, true);
     }
   }, [hasMore, loading, currentPage, loadWallpapers]);
 
-  /**
-   * Refresh da lista
-   */
+
   const refresh = useCallback(() => {
     setCurrentPage(1);
     setHasMore(true);
@@ -79,7 +70,7 @@ export function useWallpapers(searchParams: WallhavenSearchParams = {}): UseWall
     loadWallpapers(1, false);
   }, [loadWallpapers]);
 
-  // Effect para detectar mudanças nos parâmetros de busca
+
   useEffect(() => {
     const hasParamsChanged = JSON.stringify(currentSearchParams.current) !== JSON.stringify(searchParams);
     

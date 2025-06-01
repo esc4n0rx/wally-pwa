@@ -1,4 +1,4 @@
-// components/bottom-navbar.tsx
+
 "use client"
 
 import { Home, Grid, Bookmark, Settings } from "lucide-react"
@@ -36,13 +36,13 @@ export function BottomNavbar() {
     <nav 
       className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-xl border-t border-border z-50"
       style={{
-        /* Usar calc para garantir que a navbar fique acima das safe areas */
+
         paddingBottom: `max(env(safe-area-inset-bottom), 34px)`,
-        /* Adicionar margem extra para garantir que não sobreponha */
+
         marginBottom: '0px',
       }}
     >
-      {/* Container da navbar */}
+
       <div className="flex justify-around items-center px-4 h-20">
         {navItems.map((item) => {
           const isActive = pathname === item.href

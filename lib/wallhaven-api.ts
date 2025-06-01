@@ -1,12 +1,11 @@
 import { WallhavenSearchResponse, WallhavenSearchParams, WallhavenWallpaper } from '@/types/wallhaven';
 
 class WallhavenAPI {
-  private baseUrl = '/api/wallhaven'; // Usar nossa API proxy
+  private baseUrl = '/api/wallhaven';
 
   private async makeRequest<T>(endpoint: string, params?: Record<string, string>): Promise<T> {
     const url = new URL(`${this.baseUrl}${endpoint}`, window.location.origin);
     
-    // Adicionar parâmetros da URL
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
         if (value) url.searchParams.append(key, value);
@@ -33,18 +32,14 @@ class WallhavenAPI {
     }
   }
 
-  /**
-   * Buscar wallpapers com parâmetros de pesquisa
-   */
   async searchWallpapers(params: WallhavenSearchParams = {}): Promise<WallhavenSearchResponse> {
     const searchParams: Record<string, string> = {
-      purity: params.purity || '100', // Apenas SFW por padrão
+      purity: params.purity || '100', 
       sorting: params.sorting || 'date_added',
       order: params.order || 'desc',
       page: params.page?.toString() || '1',
     };
 
-    // Adicionar outros parâmetros se fornecidos
     if (params.q) searchParams.q = params.q;
     if (params.categories) searchParams.categories = params.categories;
     if (params.atleast) searchParams.atleast = params.atleast;
@@ -56,19 +51,13 @@ class WallhavenAPI {
     return this.makeRequest<WallhavenSearchResponse>('/search', searchParams);
   }
 
-  /**
-   * Obter wallpaper específico por ID
-   */
   async getWallpaper(id: string): Promise<{ data: WallhavenWallpaper }> {
     return this.makeRequest<{ data: WallhavenWallpaper }>(`/wallpaper/${id}`);
   }
 
-  /**
-   * Download do wallpaper original
-   */
   async downloadWallpaper(wallpaper: WallhavenWallpaper): Promise<void> {
     try {
-      // Fazer requisição através de um proxy para evitar CORS
+
       const proxyUrl = `/api/wallhaven/download?url=${encodeURIComponent(wallpaper.path)}`;
       const response = await fetch(proxyUrl);
       

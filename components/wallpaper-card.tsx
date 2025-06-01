@@ -1,4 +1,3 @@
-// components/wallpaper-card.tsx
 "use client"
 
 import Image from "next/image"
@@ -26,13 +25,33 @@ export function WallpaperCard({ wallpaper, onClick }: WallpaperCardProps) {
     return views.toString()
   }
 
+  const getImageUrl = (): string => {
+    if (wallpaper.path) {
+      return wallpaper.path
+    }
+    
+    if (wallpaper.thumbs?.original) {
+      return wallpaper.thumbs.original
+    }
+    
+    if (wallpaper.thumbs?.large) {
+      return wallpaper.thumbs.large
+    }
+    
+    if (wallpaper.thumbs?.small) {
+      return wallpaper.thumbs.small
+    }
+
+    return '/placeholder.svg'
+  }
+
   const safeWallpaper = {
     id: wallpaper.id || 'unknown',
     views: wallpaper.views || 0,
     favorites: wallpaper.favorites || 0,
     resolution: wallpaper.resolution || 'N/A',
     category: wallpaper.category || 'uncategorized',
-    imageUrl: wallpaper.thumbs?.large || wallpaper.path || '/placeholder.svg',
+    imageUrl: getImageUrl(),
   }
 
   return (
@@ -52,16 +71,19 @@ export function WallpaperCard({ wallpaper, onClick }: WallpaperCardProps) {
           className="object-cover transition-all duration-500 group-hover:scale-110" 
           sizes="(max-width: 768px) 50vw, 33vw"
           loading="lazy"
+          quality={90} 
+          placeholder="blur"
+          blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
           onError={(e) => {
             const target = e.target as HTMLImageElement
             target.src = '/placeholder.svg'
           }}
         />
         
-        {/* Gradient overlay */}
+
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-300" />
         
-        {/* Stats overlay */}
+
         <motion.div 
           className="absolute top-3 left-3 right-3 flex justify-between items-start"
           initial={{ opacity: 0, y: -10 }}
@@ -81,7 +103,6 @@ export function WallpaperCard({ wallpaper, onClick }: WallpaperCardProps) {
           </div>
         </motion.div>
         
-        {/* Bottom info */}
         <motion.div 
           className="absolute bottom-3 left-3 right-3"
           initial={{ opacity: 0, y: 10 }}

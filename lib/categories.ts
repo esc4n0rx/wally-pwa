@@ -1,4 +1,3 @@
-// lib/categories.ts
 import { CategoryItem } from '@/types/wallhaven'
 
 export const categories: CategoryItem[] = [
@@ -8,8 +7,8 @@ export const categories: CategoryItem[] = [
     nameEn: 'anime',
     imageUrl: '/categories/anime.png',
     searchParams: {
-      categories: '010', // apenas anime
-      purity: '100', // apenas SFW
+      categories: '010',
+      purity: '100',
       sorting: 'favorites',
       order: 'desc',
     }
@@ -21,7 +20,7 @@ export const categories: CategoryItem[] = [
     imageUrl: '/categories/nature.png',
     searchParams: {
       q: 'nature landscape',
-      categories: '100', // apenas general
+      categories: '100',
       purity: '100',
       sorting: 'favorites',
       order: 'desc',

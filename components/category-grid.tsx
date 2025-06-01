@@ -1,4 +1,3 @@
-// components/category-grid.tsx
 "use client"
 
 import Link from "next/link"
@@ -28,7 +27,7 @@ export function CategoryGrid() {
                 fill 
                 className="object-cover transition-transform duration-500 group-hover:scale-110" 
                 sizes="(max-width: 768px) 100vw, 50vw"
-                priority={index < 4} // Priorizar as primeiras 4 imagens
+                priority={index < 4} 
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
               <div className="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -44,7 +43,6 @@ export function CategoryGrid() {
                 </div>
               </div>
 
-              {/* Indicador de categoria */}
               <div className="absolute top-3 right-3">
                 <div className="bg-black/40 backdrop-blur-md rounded-full px-3 py-1">
                   <span className="text-white/90 text-xs font-medium">

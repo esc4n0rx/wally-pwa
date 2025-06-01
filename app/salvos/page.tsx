@@ -1,4 +1,3 @@
-// app/salvos/page.tsx
 "use client"
 
 import { useEffect, useState } from "react"
@@ -20,7 +19,7 @@ export default function SalvosPage() {
 
   return (
     <main className="min-h-dvh bg-gradient-to-br from-background via-background to-muted/20">
-      {/* Container principal com safe areas mais agressivas */}
+
       <div 
         className="relative min-h-dvh"
         style={{

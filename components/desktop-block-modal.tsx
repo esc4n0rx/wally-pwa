@@ -1,4 +1,3 @@
-// components/desktop-block-modal.tsx
 "use client"
 
 import { motion } from "framer-motion"
@@ -80,7 +79,6 @@ export function DesktopBlockModal() {
               className="flex-1"
               onClick={() => {
                 navigator.clipboard.writeText(window.location.href)
-                // Você pode adicionar um toast aqui
               }}
             >
               📋 Copiar Link
@@ -95,7 +93,6 @@ export function DesktopBlockModal() {
               exit={{ opacity: 0, height: 0 }}
             >
               <div className="w-32 h-32 mx-auto bg-gray-200 rounded-xl flex items-center justify-center">
-                {/* Aqui você pode integrar uma biblioteca de QR Code */}
                 <span className="text-sm text-gray-600 text-center px-2">
                   QR Code para<br />
                   {window.location.href}

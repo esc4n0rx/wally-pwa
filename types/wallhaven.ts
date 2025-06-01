@@ -1,4 +1,3 @@
-// types/wallhaven.ts
 export interface WallhavenWallpaper {
   id: string
   url: string
@@ -40,21 +39,20 @@ export interface WallhavenSearchResponse {
 }
 
 export interface WallhavenSearchParams {
-  q?: string // search query
-  categories?: string // 111 = general+anime+people, 100 = general only, etc
-  purity?: string // 100 = SFW, 110 = SFW+sketchy, 111 = all
+  q?: string 
+  categories?: string 
+  purity?: string 
   sorting?: 'date_added' | 'relevance' | 'random' | 'views' | 'favorites' | 'toplist'
   order?: 'desc' | 'asc'
   topRange?: '1d' | '3d' | '1w' | '1M' | '3M' | '6M' | '1y'
-  atleast?: string // minimum resolution (1920x1080)
-  resolutions?: string // exact resolutions
-  ratios?: string // aspect ratios
-  colors?: string // hex colors
+  atleast?: string 
+  resolutions?: string 
+  ratios?: string 
+  colors?: string 
   page?: number
-  seed?: string // for random sorting consistency
+  seed?: string 
 }
 
-// Categoria customizada para nossa interface
 export interface CategoryItem {
   id: string
   name: string

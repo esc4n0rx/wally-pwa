@@ -1,4 +1,3 @@
-// components/pwa-service-worker.tsx
 "use client"
 
 import { useEffect } from 'react'

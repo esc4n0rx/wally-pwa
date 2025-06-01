@@ -1,11 +1,10 @@
-// app/categorias/page.tsx
+
 import { BottomNavbar } from "@/components/bottom-navbar"
 import { CategoryGrid } from "@/components/category-grid"
 
 export default function CategoriasPage() {
   return (
     <main className="min-h-dvh bg-gradient-to-br from-background via-background to-muted/20">
-      {/* Container principal com safe areas mais agressivas */}
       <div 
         className="relative min-h-dvh"
         style={{
