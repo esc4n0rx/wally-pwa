@@ -38,29 +38,17 @@ export function WallpaperModal({ wallpaper, onClose }: WallpaperModalProps) {
   const handleDownload = async () => {
     setIsDownloading(true);
     try {
-      const response = await fetch(wallpaper.path);
+      const encodedUrl = encodeURIComponent(wallpaper.path);
+      const downloadUrl = `/api/wallhaven/download?url=${encodedUrl}`;
       
-      if (!response.ok) {
-        throw new Error('Falha ao baixar o wallpaper');
-      }
-      
-      const blob = await response.blob();
-      
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      
-      const fileExtension = wallpaper.file_type?.split('/')[1] || 'jpg';
-      link.download = `wallhaven-${wallpaper.id}.${fileExtension}`;
-      
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-      
+      // The browser will handle the download automatically
+      // due to the Content-Disposition header from the API
+      window.location.href = downloadUrl;
+
     } catch (error) {
       console.error("Erro ao baixar wallpaper:", error);
       
+      // Fallback to opening the wallpaper in a new tab
       try {
         window.open(wallpaper.path, '_blank');
       } catch (fallbackError) {
